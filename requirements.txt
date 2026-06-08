@@ -1,0 +1,5 @@
+anthropic>=0.40.0
+python-dotenv>=1.0.0
+faker>=24.0.0
+jsonschema>=4.23.0
+click>=8.1.0

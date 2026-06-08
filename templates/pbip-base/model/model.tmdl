@@ -1,0 +1,6 @@
+model Model
+	compatibilityLevel = 1550
+	culture = 'en-US'
+
+	/// BI_COHOST_PLACEHOLDER:tables
+	/// BI_COHOST_PLACEHOLDER:relationships

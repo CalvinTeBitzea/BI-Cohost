@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["spec_id", "created_at", "raw_brief", "kpis", "columns", "grain", "audience", "refresh_cadence", "approved"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "raw_brief": { "type": "string" },
+    "kpis": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "priority"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "priority": { "type": "string", "enum": ["must-have", "nice-to-have"] }
+        }
+      }
+    },
+    "columns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "grain": { "type": "string" },
+    "audience": { "type": "string" },
+    "refresh_cadence": { "type": "string" },
+    "visual_preferences": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "approved": { "type": "boolean" },
+    "notes": { "type": ["string", "null"] }
+  }
+}
