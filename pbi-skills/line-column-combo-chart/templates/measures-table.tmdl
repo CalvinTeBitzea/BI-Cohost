@@ -1,0 +1,26 @@
+table '<MEASURE_TABLE>'
+	lineageTag: <MEASURE_TABLE_LINEAGE_TAG>
+
+	measure '<VOLUME_MEASURE_NAME>' = <VOLUME_MEASURE_DAX>
+		lineageTag: <VOLUME_MEASURE_LINEAGE_TAG>
+
+	measure '<GROWTH_MEASURE_NAME>' =
+			<GROWTH_MEASURE_DAX>
+		lineageTag: <GROWTH_MEASURE_LINEAGE_TAG>
+
+	column Column
+		formatString: 0
+		lineageTag: <MEASURE_TABLE_COLUMN_LINEAGE_TAG>
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition '<MEASURE_TABLE>' = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = <MEASURE_TABLE_PBI_ID>
+
+	annotation <MEASURE_TABLE_ANNOTATION_KEY> = {"Expression":""}
