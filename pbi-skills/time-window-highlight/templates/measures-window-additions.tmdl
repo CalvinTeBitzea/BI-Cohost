@@ -1,0 +1,7 @@
+	measure '<WINDOW_START_MEASURE>' = MIN('<SLICER_TABLE_NAME>'[<SOURCE_DATE_COLUMN>])
+		formatString: General Date
+		lineageTag: <WINDOW_START_LINEAGE_TAG>
+
+	measure '<WINDOW_END_MEASURE>' = MAX( '<SLICER_TABLE_NAME>'[<SOURCE_DATE_COLUMN>])
+		formatString: General Date
+		lineageTag: <WINDOW_END_LINEAGE_TAG>
