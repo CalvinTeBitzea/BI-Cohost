@@ -18,6 +18,8 @@ Three gates:
   Gate 3 — IR fidelity: page/visual count, types, positions (runs here)
 """
 
+from __future__ import annotations
+
 import json
 import re
 import uuid
@@ -25,6 +27,8 @@ from pathlib import Path
 
 from lib.anthropic_client import BRAIN, call_with_tool, consult_advisor
 from lib.artifact_store import read_artifact, write_artifact, artifact_path, mark_stage_done
+from lib import skills as skill_lib
+from lib import layout as layout_engine
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -227,6 +231,86 @@ def _build_query_state(
 
 
 # ---------------------------------------------------------------------------
+# Skill token-fill (v1: skills emit their report visual; the semantic model is
+# owned by semantic_model.json, so a skill's TMDL fragments are not applied here.
+# A skill that needs a new model object is flagged via _skill_needs_model_objects.)
+# ---------------------------------------------------------------------------
+
+_GEOM_SUFFIX = {"_X": "x", "_Y": "y", "_Z": "z", "_HEIGHT": "h", "_WIDTH": "w",
+                "_TAB_ORDER": "tabOrder"}
+
+
+def _skill_tokens(skill, visual: dict, folder_name: str,
+                  measure_defs: dict, dimension_defs: dict) -> dict:
+    """Build the token dict for a skill from the IR visual + model. Starts from the
+    skill's documented example values (safe defaults for display tokens like axis
+    bounds) and overrides geometry, fields, ids, and skill_params."""
+    L = visual.get("layout", {})
+    measures = visual.get("measures", [])
+    dims = visual.get("dimensions", [])
+    tokens = dict(skill.example_tokens())
+
+    for tok in skill.tokens:
+        for suf, key in _GEOM_SUFFIX.items():
+            if tok.endswith(suf):
+                tokens[tok] = L.get(key, 0)
+        if tok.endswith("_LINEAGE_TAG"):
+            tokens[tok] = skill_lib.new_lineage_tag()
+        elif tok.endswith("_PBI_ID"):
+            tokens[tok] = skill_lib.new_pbi_id()
+        elif tok.endswith("VISUAL_NAME"):
+            tokens[tok] = folder_name
+
+    def setif(key, val):
+        if key in tokens and val:
+            tokens[key] = val
+
+    if measures:
+        m0 = measure_defs.get(measures[0], {})
+        setif("MEASURE_TABLE", m0.get("home_table"))
+        setif("VOLUME_MEASURE_NAME", measures[0])
+        setif("VOLUME_MEASURE_NATIVE_REF", measures[0])
+        setif("VALUE_MEASURE", measures[0])
+    if len(measures) > 1:
+        setif("GROWTH_MEASURE_NAME", measures[1])
+        setif("GROWTH_MEASURE_NATIVE_REF", measures[1])
+    if dims:
+        d0 = dimension_defs.get(dims[0], {})
+        setif("DATE_TABLE", d0.get("source_table"))
+        setif("SOURCE_DATE_TABLE", d0.get("source_table"))
+        setif("DATE_AXIS_COLUMN", d0.get("source_column"))
+        setif("SOURCE_DATE_COLUMN", d0.get("source_column"))
+    setif("CHART_TITLE", visual.get("title"))
+
+    # skill_params from the IR override anything, by exact token name.
+    for k, v in (visual.get("skill_params") or {}).items():
+        tokens[k] = v
+        tokens[k.upper()] = v
+    return tokens
+
+
+def _skill_visual_jsons(skill, visual: dict, folder_name: str,
+                        measure_defs: dict, dimension_defs: dict) -> list[dict]:
+    """Fill a skill's templates and return the parsed `*.visual.json` objects.
+    Raises on any unfilled token or invalid JSON (via skill_lib.fill)."""
+    tokens = _skill_tokens(skill, visual, folder_name, measure_defs, dimension_defs)
+    filled = skill_lib.fill(skill, tokens)
+    out = []
+    for rel, text in filled.items():
+        if rel.endswith(".visual.json"):
+            vj = json.loads(text)
+            vj["name"] = folder_name  # keep name aligned with the folder
+            out.append(vj)
+    return out
+
+
+def _skill_needs_model_objects(skill) -> bool:
+    """True if the skill ships TMDL that creates semantic-model objects (a measures
+    table, disconnected slicer table, etc.) — not applied in v1."""
+    return any(rel.endswith(".tmdl") for rel in skill.templates)
+
+
+# ---------------------------------------------------------------------------
 # Visual JSON builder
 # ---------------------------------------------------------------------------
 
@@ -239,14 +323,15 @@ def _build_visual_json(
     dimension_defs: dict,
 ) -> dict:
     pbi_type = _VISUAL_TYPE_MAP.get(visual_spec.get("type", "card"), "cardVisual")
-    z = _Z_RANGES.get(pbi_type, _Z_DEFAULT) + tab_order
 
-    # Use positions from the IR spec (set by dashboard_spec layout engine)
-    pos = visual_spec.get("_position", {})
-    x = pos.get("x", 30)
-    y = pos.get("y", 80)
-    w = pos.get("w", 280)
-    h = pos.get("h", 130)
+    # Geometry comes straight from the IR layout (resolved once by lib.layout).
+    L = visual_spec.get("layout", {})
+    x = L.get("x", 30)
+    y = L.get("y", 80)
+    w = L.get("w", 280)
+    h = L.get("h", 130)
+    z = L.get("z", _Z_RANGES.get(pbi_type, _Z_DEFAULT) + tab_order)
+    tab = L.get("tabOrder", tab_order)
 
     query_state = _build_query_state(
         pbi_type,
@@ -259,7 +344,7 @@ def _build_visual_json(
     return {
         "$schema": schema_url,
         "name": folder_name,
-        "position": {"x": x, "y": y, "z": z, "width": w, "height": h, "tabOrder": tab_order},
+        "position": {"x": x, "y": y, "z": z, "width": w, "height": h, "tabOrder": tab},
         "visual": {
             "visualType": pbi_type,
             "query": {"queryState": query_state} if query_state else {},
@@ -283,59 +368,8 @@ def _build_page_json(page_spec: dict, folder_name: str) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
-# Layout: attach positions to visual specs
-# ---------------------------------------------------------------------------
-
-def _attach_positions(page_spec: dict) -> None:
-    """
-    Compute and attach _position dicts to each visual in the page spec.
-    Uses standard grid positions from the SKILL.md reference layout.
-    Modifies page_spec.visuals in-place.
-    """
-    visuals = page_spec.get("visuals", [])
-    margin = 16
-
-    slicers  = [v for v in visuals if v.get("type") == "slicer"]
-    cards    = [v for v in visuals if v.get("type") == "card"]
-    charts   = [v for v in visuals if v.get("type") not in ("slicer", "card")]
-
-    y = margin
-
-    if slicers:
-        n = len(slicers)
-        w = (1280 - margin * (n + 1)) // n
-        for i, v in enumerate(slicers):
-            v["_position"] = {"x": margin + i * (w + margin), "y": y, "w": w, "h": 60}
-        y += 60 + margin
-
-    if cards:
-        n = len(cards)
-        w = min(280, (1280 - margin * (n + 1)) // n)
-        for i, v in enumerate(cards):
-            v["_position"] = {"x": margin + i * (w + margin), "y": y, "w": w, "h": 130}
-        y += 130 + margin
-
-    if charts:
-        cols = min(2, len(charts))
-        cw = (1280 - margin * (cols + 1)) // cols
-        remaining = 720 - y - margin
-        rows = (len(charts) + cols - 1) // cols
-        ch = max(150, (remaining - margin * (rows - 1)) // rows)
-        for i, v in enumerate(charts):
-            col = i % cols
-            row = i // cols
-            v["_position"] = {
-                "x": margin + col * (cw + margin),
-                "y": y + row * (ch + margin),
-                "w": cw,
-                "h": ch
-            }
-
-    # fallback for anything that didn't get a position
-    for v in visuals:
-        if "_position" not in v:
-            v["_position"] = {"x": margin, "y": margin, "w": 400, "h": 300}
+# Layout is now resolved once by lib.layout.snap_page and carried in the IR
+# (visual["layout"]). The builder reads it directly — see _build_visual_json.
 
 
 # ---------------------------------------------------------------------------
@@ -442,10 +476,13 @@ def _gate1_validate(files: list[Path]) -> tuple[bool, list[str]]:
 # Gate 3 — IR fidelity check
 # ---------------------------------------------------------------------------
 
-def _gate3_fidelity(spec: dict, written_pages: dict) -> tuple[bool, list[str]]:
+def _gate3_fidelity(spec: dict, written_pages: dict, pos_tol: float = 10.0) -> tuple[bool, list[str]]:
     """
-    Compare IR spec to generated files.
-    Returns (passed, issues). Tolerance: visual type exact match; position ±10px.
+    Compare the IR spec to the generated PBIR files. Matches each spec visual to its
+    written `visual.json` by folder name, then checks:
+      - page + visual counts match
+      - position within `pos_tol` px of the IR layout (x, y, width, height)
+      - visualType matches the type map (skipped for skill visuals — the skill owns it)
     """
     issues = []
     spec_pages = spec.get("pages", [])
@@ -459,25 +496,42 @@ def _gate3_fidelity(spec: dict, written_pages: dict) -> tuple[bool, list[str]]:
             issues.append(f"Page '{page_spec.get('name')}' not found in output")
             continue
 
-        spec_visuals = page_spec.get("visuals", [])
-        written_count = sum(1 for _ in (folder / "visuals").iterdir()) if (folder / "visuals").exists() else 0
-        if len(spec_visuals) != written_count:
-            issues.append(f"Page '{page_spec.get('name')}' visual count: spec={len(spec_visuals)}, written={written_count}")
+        visuals_dir = folder / "visuals"
+        written = {}
+        if visuals_dir.exists():
+            for v_dir in visuals_dir.iterdir():
+                vf = v_dir / "visual.json"
+                if vf.exists():
+                    written[v_dir.name] = json.loads(vf.read_text())
 
-        for v_spec in spec_visuals:
-            expected_type = _VISUAL_TYPE_MAP.get(v_spec.get("type", ""), "unknown")
-            # Find matching visual.json by folder name prefix
-            if (folder / "visuals").exists():
-                for v_dir in (folder / "visuals").iterdir():
-                    vf = v_dir / "visual.json"
-                    if vf.exists():
-                        vj = json.loads(vf.read_text())
-                        actual_type = vj.get("visual", {}).get("visualType", "")
-                        if actual_type != expected_type:
-                            issues.append(
-                                f"Visual type mismatch in {v_dir.name}: "
-                                f"expected={expected_type}, got={actual_type}"
-                            )
+        spec_visuals = page_spec.get("visuals", [])
+        if len(spec_visuals) != len(written):
+            issues.append(f"Page '{page_spec.get('name')}' visual count: "
+                          f"spec={len(spec_visuals)}, written={len(written)}")
+
+        for v_idx, v_spec in enumerate(spec_visuals):
+            folder_name = _visual_folder_name(v_idx + 1, v_spec)
+            vj = written.get(folder_name)
+            if vj is None:
+                issues.append(f"Visual '{v_spec.get('visual_id')}' "
+                              f"(folder {folder_name}) not written")
+                continue
+
+            # position fidelity
+            L = v_spec.get("layout", {})
+            pos = vj.get("position", {})
+            for ir_key, pos_key in (("x", "x"), ("y", "y"), ("w", "width"), ("h", "height")):
+                if abs(L.get(ir_key, 0) - pos.get(pos_key, 0)) > pos_tol:
+                    issues.append(f"{v_spec.get('visual_id')}: {pos_key} off by "
+                                  f">{pos_tol}px (IR {L.get(ir_key)} vs {pos.get(pos_key)})")
+
+            # type fidelity (only for fallback visuals; skills define their own type)
+            if not v_spec.get("skill"):
+                expected = _VISUAL_TYPE_MAP.get(v_spec.get("type", ""), "unknown")
+                actual = vj.get("visual", {}).get("visualType", "")
+                if actual != expected:
+                    issues.append(f"{v_spec.get('visual_id')}: type mismatch "
+                                  f"(expected {expected}, got {actual})")
 
     return (len(issues) == 0), issues
 
@@ -504,6 +558,8 @@ def run(build_id: str, pbip_report_path: str | None = None) -> dict:
 
     measure_defs   = {m["name"]: m for m in model.get("measures", [])}
     dimension_defs = {d["name"]: d for d in model.get("dimensions", [])}
+    registry       = skill_lib.load_skills()
+    skill_warnings: list[str] = []
 
     # Resolve the pages directory
     if pbip_report_path:
@@ -511,7 +567,7 @@ def run(build_id: str, pbip_report_path: str | None = None) -> dict:
         pages_dir = report_path / "definition" / "pages"
     else:
         # Scaffold output — write into artifacts for inspection
-        pages_dir = artifact_path(build_id, "") .parent / "report.pbir" / "definition" / "pages"
+        pages_dir = artifact_path(build_id, "report.pbir") / "definition" / "pages"
         print("  [pbip_builder] no --pbip-path given — writing scaffold to artifacts/")
 
     pages_dir.mkdir(parents=True, exist_ok=True)
@@ -531,17 +587,33 @@ def run(build_id: str, pbip_report_path: str | None = None) -> dict:
         page_idx = page_idx_start + page_offset
         page_folder = _page_folder_name(page_idx, page_spec)
 
-        # Attach layout positions to visual specs
-        _attach_positions(page_spec)
+        # Geometry comes from the IR. Snap only if an older spec lacks layout.
+        if any("layout" not in v for v in page_spec.get("visuals", [])):
+            layout_engine.snap_page(page_spec)
 
         page_json = _build_page_json(page_spec, page_folder)
 
         visuals: list[tuple[str, dict]] = []
         for v_idx, v_spec in enumerate(page_spec.get("visuals", [])):
             v_folder = _visual_folder_name(v_idx + 1, v_spec)
-            v_json = _build_visual_json(
-                v_spec, v_folder, v_idx, schema_url, measure_defs, dimension_defs
-            )
+            skill = skill_lib.resolve_skill(v_spec, registry)
+            v_json = None
+            if skill is not None:
+                if _skill_needs_model_objects(skill):
+                    skill_warnings.append(
+                        f"{v_spec.get('visual_id')}: skill '{skill.name}' ships TMDL "
+                        f"(model objects not auto-applied in v1)")
+                try:
+                    built = _skill_visual_jsons(
+                        skill, v_spec, v_folder, measure_defs, dimension_defs)
+                    if built:
+                        v_json = built[0]  # one IR slot → first skill visual
+                except (ValueError, KeyError) as e:
+                    skill_warnings.append(f"{v_spec.get('visual_id')}: skill fill failed "
+                                          f"({e}); using fallback visual")
+            if v_json is None:
+                v_json = _build_visual_json(
+                    v_spec, v_folder, v_idx, schema_url, measure_defs, dimension_defs)
             visuals.append((v_folder, v_json))
 
         written = _write_page(pages_dir, page_folder, page_json, visuals)
@@ -572,12 +644,18 @@ def run(build_id: str, pbip_report_path: str | None = None) -> dict:
         for i in gate3_issues:
             print(f"    {i}")
 
+    if skill_warnings:
+        print(f"  [pbip_builder] {len(skill_warnings)} skill warning(s):")
+        for w in skill_warnings:
+            print(f"    {w}")
+
     result = {
         "pages_written": new_page_names,
         "files_written": len(all_written),
         "output_dir": str(pages_dir),
         "gate1": {"passed": gate1_passed, "errors": gate1_errors},
         "gate3": {"passed": gate3_passed, "issues": gate3_issues},
+        "skill_warnings": skill_warnings,
         "schema_version_used": schema_url,
     }
 

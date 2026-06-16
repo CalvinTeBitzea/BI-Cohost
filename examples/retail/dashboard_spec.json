@@ -1,0 +1,45 @@
+{
+  "spec_id": "retail_dash_v1",
+  "created_at": "2026-06-15T00:00:00+00:00",
+  "requirements_spec_id": "retail_req_v1",
+  "model_id": "retail_sales_v1",
+  "template": "wireframe:retail-sales-analytics",
+  "missing": [],
+  "pages": [
+    {
+      "page_id": "p1", "name": "Executive Summary", "type": "overview",
+      "visuals": [
+        {"visual_id": "p1f1", "type": "slicer", "title": "Date range", "measures": [], "dimensions": ["FullDate"], "accessibility_label": "Date range slicer", "skill": null, "grid": {"col": 0, "row": 0, "colSpan": 3, "rowSpan": 1}},
+        {"visual_id": "p1f2", "type": "slicer", "title": "Country", "measures": [], "dimensions": ["Country"], "accessibility_label": "Country slicer", "skill": null, "grid": {"col": 3, "row": 0, "colSpan": 3, "rowSpan": 1}},
+        {"visual_id": "p1f3", "type": "slicer", "title": "Category", "measures": [], "dimensions": ["Category"], "accessibility_label": "Category slicer", "skill": null, "grid": {"col": 6, "row": 0, "colSpan": 3, "rowSpan": 1}},
+        {"visual_id": "p1f4", "type": "slicer", "title": "Membership Tier", "measures": [], "dimensions": ["MembershipTier"], "accessibility_label": "Membership tier slicer", "skill": null, "grid": {"col": 9, "row": 0, "colSpan": 3, "rowSpan": 1}},
+
+        {"visual_id": "p1k1", "type": "card", "title": "Net Revenue", "measures": ["Net Revenue"], "dimensions": [], "accessibility_label": "Net Revenue KPI vs last year", "skill": null, "grid": {"col": 0, "row": 1, "colSpan": 4, "rowSpan": 1}},
+        {"visual_id": "p1k2", "type": "card", "title": "Gross Profit", "measures": ["Gross Profit"], "dimensions": [], "accessibility_label": "Gross Profit KPI", "skill": null, "grid": {"col": 4, "row": 1, "colSpan": 2, "rowSpan": 1}},
+        {"visual_id": "p1k3", "type": "card", "title": "Profit Margin %", "measures": ["Profit Margin %"], "dimensions": [], "accessibility_label": "Profit Margin percent KPI", "skill": null, "grid": {"col": 6, "row": 1, "colSpan": 2, "rowSpan": 1}},
+        {"visual_id": "p1k4", "type": "card", "title": "Quantity Sold", "measures": ["Quantity Sold"], "dimensions": [], "accessibility_label": "Quantity Sold KPI", "skill": null, "grid": {"col": 8, "row": 1, "colSpan": 2, "rowSpan": 1}},
+        {"visual_id": "p1k5", "type": "card", "title": "Discount Rate %", "measures": ["Discount Rate %"], "dimensions": [], "accessibility_label": "Discount Rate percent KPI", "skill": null, "grid": {"col": 10, "row": 1, "colSpan": 2, "rowSpan": 1}},
+
+        {"visual_id": "p1c1", "type": "line", "title": "Net Revenue & Profit by Month — 2026 vs 2025", "measures": ["Net Revenue", "Gross Profit"], "dimensions": ["MonthName"], "accessibility_label": "Dual line of Net Revenue and Profit by month", "skill": null, "grid": {"col": 0, "row": 2, "colSpan": 7, "rowSpan": 1}},
+        {"visual_id": "p1c2", "type": "donut", "title": "Net Revenue by Category", "measures": ["Net Revenue"], "dimensions": ["Category"], "accessibility_label": "Donut of Net Revenue by category", "skill": null, "grid": {"col": 7, "row": 2, "colSpan": 5, "rowSpan": 1}},
+        {"visual_id": "p1c3", "type": "line", "title": "Profit Margin % & Discount Rate % Trend", "measures": ["Profit Margin %", "Discount Rate %"], "dimensions": ["MonthName"], "accessibility_label": "Dual line of margin and discount rate over months", "skill": null, "grid": {"col": 0, "row": 3, "colSpan": 7, "rowSpan": 1}},
+        {"visual_id": "p1c4", "type": "column", "title": "Net Revenue by Quarter — 2026 vs 2025", "measures": ["Net Revenue"], "dimensions": ["Quarter"], "accessibility_label": "Clustered column of Net Revenue by quarter year over year", "skill": null, "grid": {"col": 7, "row": 3, "colSpan": 5, "rowSpan": 1}}
+      ]
+    },
+    {
+      "page_id": "p2", "name": "Product & Category", "type": "detail",
+      "visuals": [
+        {"visual_id": "p2k1", "type": "card", "title": "Top Category Revenue", "measures": ["Top Category Revenue"], "dimensions": [], "accessibility_label": "Top category revenue KPI", "skill": null, "grid": {"col": 0, "row": 1, "colSpan": 4, "rowSpan": 1}},
+        {"visual_id": "p2k2", "type": "card", "title": "Active SKUs", "measures": ["Active SKUs"], "dimensions": [], "accessibility_label": "Active SKUs KPI", "skill": null, "grid": {"col": 4, "row": 1, "colSpan": 2, "rowSpan": 1}},
+        {"visual_id": "p2k3", "type": "card", "title": "% Rev — Top 10 SKUs", "measures": ["Pct Rev Top10 SKUs"], "dimensions": [], "accessibility_label": "Percent revenue from top 10 SKUs KPI", "skill": null, "grid": {"col": 6, "row": 1, "colSpan": 2, "rowSpan": 1}},
+        {"visual_id": "p2k4", "type": "card", "title": "Avg Category Margin %", "measures": ["Avg Category Margin %"], "dimensions": [], "accessibility_label": "Average category margin KPI", "skill": null, "grid": {"col": 8, "row": 1, "colSpan": 2, "rowSpan": 1}},
+        {"visual_id": "p2k5", "type": "card", "title": "Discount Rate %", "measures": ["Discount Rate %"], "dimensions": [], "accessibility_label": "Discount rate KPI", "skill": null, "grid": {"col": 10, "row": 1, "colSpan": 2, "rowSpan": 1}},
+
+        {"visual_id": "p2c1", "type": "column", "title": "Revenue Concentration — Pareto", "measures": ["Net Revenue", "Cumulative Net Revenue %"], "dimensions": ["ProductName"], "accessibility_label": "Pareto of revenue by product with cumulative line", "skill": "line-column-combo-chart", "skill_params": {"CHART_TITLE": "Revenue Concentration — Pareto"}, "grid": {"col": 0, "row": 2, "colSpan": 7, "rowSpan": 1}},
+        {"visual_id": "p2c2", "type": "scatter", "title": "Discount Rate vs Margin — by Category", "measures": ["Discount Rate %", "Profit Margin %", "Net Revenue"], "dimensions": ["Category"], "accessibility_label": "Scatter of discount rate versus margin by category", "skill": null, "grid": {"col": 7, "row": 2, "colSpan": 5, "rowSpan": 1}},
+
+        {"visual_id": "p2t1", "type": "table", "title": "Product Performance — Top / Bottom Movers", "measures": ["Net Revenue", "Quantity Sold", "Gross Profit", "Profit Margin %", "Discount Rate %"], "dimensions": ["ProductName", "Category", "Brand"], "accessibility_label": "Ranked table of product performance", "skill": null, "sort_by": "Net Revenue", "sort_direction": "desc", "grid": {"col": 0, "row": 3, "colSpan": 12, "rowSpan": 1}}
+      ]
+    }
+  ]
+}
