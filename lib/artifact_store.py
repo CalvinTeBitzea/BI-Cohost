@@ -1,7 +1,8 @@
 import json
+import os
 from pathlib import Path
 
-_BASE = Path(__file__).parent.parent / "artifacts"
+_BASE = Path(os.environ.get("ARTIFACT_ROOT", str(Path(__file__).parent.parent / "artifacts")))
 
 
 def artifact_path(build_id: str, filename: str) -> Path:

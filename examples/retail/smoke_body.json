@@ -1,0 +1,600 @@
+{
+  "dashboard_spec": {
+    "spec_id": "retail_dash_v1",
+    "created_at": "2026-06-15T00:00:00+00:00",
+    "requirements_spec_id": "retail_req_v1",
+    "model_id": "retail_sales_v1",
+    "template": "wireframe:retail-sales-analytics",
+    "missing": [],
+    "pages": [
+      {
+        "page_id": "p1",
+        "name": "Executive Summary",
+        "type": "overview",
+        "visuals": [
+          {
+            "visual_id": "p1f1",
+            "type": "slicer",
+            "title": "Date range",
+            "measures": [],
+            "dimensions": [
+              "FullDate"
+            ],
+            "accessibility_label": "Date range slicer",
+            "skill": null,
+            "grid": {
+              "col": 0,
+              "row": 0,
+              "colSpan": 3,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1f2",
+            "type": "slicer",
+            "title": "Country",
+            "measures": [],
+            "dimensions": [
+              "Country"
+            ],
+            "accessibility_label": "Country slicer",
+            "skill": null,
+            "grid": {
+              "col": 3,
+              "row": 0,
+              "colSpan": 3,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1f3",
+            "type": "slicer",
+            "title": "Category",
+            "measures": [],
+            "dimensions": [
+              "Category"
+            ],
+            "accessibility_label": "Category slicer",
+            "skill": null,
+            "grid": {
+              "col": 6,
+              "row": 0,
+              "colSpan": 3,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1f4",
+            "type": "slicer",
+            "title": "Membership Tier",
+            "measures": [],
+            "dimensions": [
+              "MembershipTier"
+            ],
+            "accessibility_label": "Membership tier slicer",
+            "skill": null,
+            "grid": {
+              "col": 9,
+              "row": 0,
+              "colSpan": 3,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1k1",
+            "type": "card",
+            "title": "Net Revenue",
+            "measures": [
+              "Net Revenue"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Net Revenue KPI vs last year",
+            "skill": null,
+            "grid": {
+              "col": 0,
+              "row": 1,
+              "colSpan": 4,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1k2",
+            "type": "card",
+            "title": "Gross Profit",
+            "measures": [
+              "Gross Profit"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Gross Profit KPI",
+            "skill": null,
+            "grid": {
+              "col": 4,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1k3",
+            "type": "card",
+            "title": "Profit Margin %",
+            "measures": [
+              "Profit Margin %"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Profit Margin percent KPI",
+            "skill": null,
+            "grid": {
+              "col": 6,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1k4",
+            "type": "card",
+            "title": "Quantity Sold",
+            "measures": [
+              "Quantity Sold"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Quantity Sold KPI",
+            "skill": null,
+            "grid": {
+              "col": 8,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1k5",
+            "type": "card",
+            "title": "Discount Rate %",
+            "measures": [
+              "Discount Rate %"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Discount Rate percent KPI",
+            "skill": null,
+            "grid": {
+              "col": 10,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1c1",
+            "type": "line",
+            "title": "Net Revenue & Profit by Month \u2014 2026 vs 2025",
+            "measures": [
+              "Net Revenue",
+              "Gross Profit"
+            ],
+            "dimensions": [
+              "MonthName"
+            ],
+            "accessibility_label": "Dual line of Net Revenue and Profit by month",
+            "skill": null,
+            "grid": {
+              "col": 0,
+              "row": 2,
+              "colSpan": 7,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1c2",
+            "type": "donut",
+            "title": "Net Revenue by Category",
+            "measures": [
+              "Net Revenue"
+            ],
+            "dimensions": [
+              "Category"
+            ],
+            "accessibility_label": "Donut of Net Revenue by category",
+            "skill": null,
+            "grid": {
+              "col": 7,
+              "row": 2,
+              "colSpan": 5,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1c3",
+            "type": "line",
+            "title": "Profit Margin % & Discount Rate % Trend",
+            "measures": [
+              "Profit Margin %",
+              "Discount Rate %"
+            ],
+            "dimensions": [
+              "MonthName"
+            ],
+            "accessibility_label": "Dual line of margin and discount rate over months",
+            "skill": null,
+            "grid": {
+              "col": 0,
+              "row": 3,
+              "colSpan": 7,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p1c4",
+            "type": "column",
+            "title": "Net Revenue by Quarter \u2014 2026 vs 2025",
+            "measures": [
+              "Net Revenue"
+            ],
+            "dimensions": [
+              "Quarter"
+            ],
+            "accessibility_label": "Clustered column of Net Revenue by quarter year over year",
+            "skill": null,
+            "grid": {
+              "col": 7,
+              "row": 3,
+              "colSpan": 5,
+              "rowSpan": 1
+            }
+          }
+        ]
+      },
+      {
+        "page_id": "p2",
+        "name": "Product & Category",
+        "type": "detail",
+        "visuals": [
+          {
+            "visual_id": "p2k1",
+            "type": "card",
+            "title": "Top Category Revenue",
+            "measures": [
+              "Top Category Revenue"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Top category revenue KPI",
+            "skill": null,
+            "grid": {
+              "col": 0,
+              "row": 1,
+              "colSpan": 4,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p2k2",
+            "type": "card",
+            "title": "Active SKUs",
+            "measures": [
+              "Active SKUs"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Active SKUs KPI",
+            "skill": null,
+            "grid": {
+              "col": 4,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p2k3",
+            "type": "card",
+            "title": "% Rev \u2014 Top 10 SKUs",
+            "measures": [
+              "Pct Rev Top10 SKUs"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Percent revenue from top 10 SKUs KPI",
+            "skill": null,
+            "grid": {
+              "col": 6,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p2k4",
+            "type": "card",
+            "title": "Avg Category Margin %",
+            "measures": [
+              "Avg Category Margin %"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Average category margin KPI",
+            "skill": null,
+            "grid": {
+              "col": 8,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p2k5",
+            "type": "card",
+            "title": "Discount Rate %",
+            "measures": [
+              "Discount Rate %"
+            ],
+            "dimensions": [],
+            "accessibility_label": "Discount rate KPI",
+            "skill": null,
+            "grid": {
+              "col": 10,
+              "row": 1,
+              "colSpan": 2,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p2c1",
+            "type": "column",
+            "title": "Revenue Concentration \u2014 Pareto",
+            "measures": [
+              "Net Revenue",
+              "Cumulative Net Revenue %"
+            ],
+            "dimensions": [
+              "ProductName"
+            ],
+            "accessibility_label": "Pareto of revenue by product with cumulative line",
+            "skill": "line-column-combo-chart",
+            "skill_params": {
+              "CHART_TITLE": "Revenue Concentration \u2014 Pareto"
+            },
+            "grid": {
+              "col": 0,
+              "row": 2,
+              "colSpan": 7,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p2c2",
+            "type": "scatter",
+            "title": "Discount Rate vs Margin \u2014 by Category",
+            "measures": [
+              "Discount Rate %",
+              "Profit Margin %",
+              "Net Revenue"
+            ],
+            "dimensions": [
+              "Category"
+            ],
+            "accessibility_label": "Scatter of discount rate versus margin by category",
+            "skill": null,
+            "grid": {
+              "col": 7,
+              "row": 2,
+              "colSpan": 5,
+              "rowSpan": 1
+            }
+          },
+          {
+            "visual_id": "p2t1",
+            "type": "table",
+            "title": "Product Performance \u2014 Top / Bottom Movers",
+            "measures": [
+              "Net Revenue",
+              "Quantity Sold",
+              "Gross Profit",
+              "Profit Margin %",
+              "Discount Rate %"
+            ],
+            "dimensions": [
+              "ProductName",
+              "Category",
+              "Brand"
+            ],
+            "accessibility_label": "Ranked table of product performance",
+            "skill": null,
+            "sort_by": "Net Revenue",
+            "sort_direction": "desc",
+            "grid": {
+              "col": 0,
+              "row": 3,
+              "colSpan": 12,
+              "rowSpan": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "semantic_model": {
+    "model_id": "retail_sales_v1",
+    "created_at": "2026-06-15T00:00:00+00:00",
+    "spec_id": "retail_req_v1",
+    "measures": [
+      {
+        "name": "Net Revenue",
+        "home_table": "Fact_Sales",
+        "format_string": "\\$#,0",
+        "description": "SUM(TotalAmount) - SUM(Discount)",
+        "dax": "SUM('Fact_Sales'[TotalAmount]) - SUM('Fact_Sales'[Discount])"
+      },
+      {
+        "name": "Gross Profit",
+        "home_table": "Fact_Sales",
+        "format_string": "\\$#,0",
+        "description": "SUM(Profit)",
+        "dax": "SUM('Fact_Sales'[Profit])"
+      },
+      {
+        "name": "Profit Margin %",
+        "home_table": "Fact_Sales",
+        "format_string": "0.0%",
+        "description": "Gross Profit / Net Revenue",
+        "dax": "DIVIDE([Gross Profit], [Net Revenue])"
+      },
+      {
+        "name": "Quantity Sold",
+        "home_table": "Fact_Sales",
+        "format_string": "#,0",
+        "description": "SUM(Quantity)",
+        "dax": "SUM('Fact_Sales'[Quantity])"
+      },
+      {
+        "name": "Discount Rate %",
+        "home_table": "Fact_Sales",
+        "format_string": "0.0%",
+        "description": "SUM(Discount) / SUM(TotalAmount)",
+        "dax": "DIVIDE(SUM('Fact_Sales'[Discount]), SUM('Fact_Sales'[TotalAmount]))"
+      },
+      {
+        "name": "Top Category Revenue",
+        "home_table": "Fact_Sales",
+        "format_string": "\\$#,0",
+        "description": "Net Revenue of the top category",
+        "dax": "MAXX(VALUES('Dim_Product'[Category]), [Net Revenue])"
+      },
+      {
+        "name": "Active SKUs",
+        "home_table": "Dim_Product",
+        "format_string": "#,0",
+        "description": "DISTINCTCOUNT ProductKey where IsActive",
+        "dax": "CALCULATE(DISTINCTCOUNT('Dim_Product'[ProductKey]), 'Dim_Product'[IsActive] = TRUE())"
+      },
+      {
+        "name": "Pct Rev Top10 SKUs",
+        "home_table": "Fact_Sales",
+        "format_string": "0.0%",
+        "description": "Top-10 SKU share of Net Revenue (Pareto)",
+        "dax": "DIVIDE([Net Revenue (Top 10 SKU)], [Net Revenue])"
+      },
+      {
+        "name": "Avg Category Margin %",
+        "home_table": "Fact_Sales",
+        "format_string": "0.0%",
+        "description": "Average Profit Margin % across categories",
+        "dax": "AVERAGEX(VALUES('Dim_Product'[Category]), [Profit Margin %])"
+      },
+      {
+        "name": "Cumulative Net Revenue %",
+        "home_table": "Fact_Sales",
+        "format_string": "0.0%",
+        "description": "Running cumulative share of Net Revenue by product rank (Pareto line)",
+        "dax": "DIVIDE([Running Net Revenue], [Net Revenue (All Products)])"
+      }
+    ],
+    "dimensions": [
+      {
+        "name": "MonthName",
+        "source_table": "Dim_Date",
+        "source_column": "MonthName",
+        "data_type": "string"
+      },
+      {
+        "name": "Quarter",
+        "source_table": "Dim_Date",
+        "source_column": "Quarter",
+        "data_type": "string"
+      },
+      {
+        "name": "Year",
+        "source_table": "Dim_Date",
+        "source_column": "Year",
+        "data_type": "int64"
+      },
+      {
+        "name": "FullDate",
+        "source_table": "Dim_Date",
+        "source_column": "FullDate",
+        "data_type": "dateTime"
+      },
+      {
+        "name": "Category",
+        "source_table": "Dim_Product",
+        "source_column": "Category",
+        "data_type": "string"
+      },
+      {
+        "name": "SubCategory",
+        "source_table": "Dim_Product",
+        "source_column": "SubCategory",
+        "data_type": "string"
+      },
+      {
+        "name": "ProductName",
+        "source_table": "Dim_Product",
+        "source_column": "ProductName",
+        "data_type": "string"
+      },
+      {
+        "name": "Brand",
+        "source_table": "Dim_Product",
+        "source_column": "Brand",
+        "data_type": "string"
+      },
+      {
+        "name": "Country",
+        "source_table": "Dim_Store",
+        "source_column": "Country",
+        "data_type": "string"
+      },
+      {
+        "name": "State",
+        "source_table": "Dim_Store",
+        "source_column": "State",
+        "data_type": "string"
+      },
+      {
+        "name": "StoreType",
+        "source_table": "Dim_Store",
+        "source_column": "StoreType",
+        "data_type": "string"
+      },
+      {
+        "name": "MembershipTier",
+        "source_table": "Dim_Customer",
+        "source_column": "MembershipTier",
+        "data_type": "string"
+      }
+    ],
+    "relationships": [
+      {
+        "from_table": "Dim_Date",
+        "from_column": "DateKey",
+        "to_table": "Fact_Sales",
+        "to_column": "DateKey",
+        "cardinality": "1:N",
+        "cross_filter_direction": "single"
+      },
+      {
+        "from_table": "Dim_Customer",
+        "from_column": "CustomerKey",
+        "to_table": "Fact_Sales",
+        "to_column": "CustomerKey",
+        "cardinality": "1:N",
+        "cross_filter_direction": "single"
+      },
+      {
+        "from_table": "Dim_Product",
+        "from_column": "ProductKey",
+        "to_table": "Fact_Sales",
+        "to_column": "ProductKey",
+        "cardinality": "1:N",
+        "cross_filter_direction": "single"
+      },
+      {
+        "from_table": "Dim_Store",
+        "from_column": "StoreKey",
+        "to_table": "Fact_Sales",
+        "to_column": "StoreKey",
+        "cardinality": "1:N",
+        "cross_filter_direction": "single"
+      }
+    ],
+    "advisor_guidance": null
+  },
+  "build_id": "retail_test"
+}

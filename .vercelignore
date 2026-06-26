@@ -1,0 +1,7 @@
+tests/
+examples/
+.venv/
+artifacts/
+memories/
+.pytest_cache/
+*.md
