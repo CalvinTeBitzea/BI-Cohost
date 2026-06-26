@@ -1,8 +1,5 @@
 """
-Flask entry point for Vercel — POST /api/build
-
-Accepts dashboard_spec + semantic_model as JSON, runs the bi-cohost builder
-pipeline, and returns a zip of the generated PBIR pages directory.
+Flask entry point for Vercel deployment — POST /api/build
 """
 import io
 import json
@@ -13,15 +10,14 @@ import uuid
 import zipfile
 from pathlib import Path
 
-# Must precede imports that read ARTIFACT_ROOT at module level.
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent))
 os.environ.setdefault("ARTIFACT_ROOT", "/tmp/bi-cohost-builds")
 
-from flask import Flask, jsonify, request, send_file  # noqa: E402
+from flask import Flask, jsonify, request, send_file
 
-import agents.ingest as ingest_agent       # noqa: E402
-import agents.pbip_builder as pbip_agent   # noqa: E402
-from lib.artifact_store import artifact_path  # noqa: E402
+import agents.ingest as ingest_agent
+import agents.pbip_builder as pbip_agent
+from lib.artifact_store import artifact_path
 
 app = Flask(__name__)
 
