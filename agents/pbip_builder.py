@@ -289,24 +289,30 @@ def _skill_tokens(skill, visual: dict, folder_name: str,
     return tokens
 
 
-def _skill_visual_jsons(skill, visual: dict, folder_name: str,
-                        measure_defs: dict, dimension_defs: dict) -> list[dict]:
-    """Fill a skill's templates and return the parsed `*.visual.json` objects.
-    Raises on any unfilled token or invalid JSON (via skill_lib.fill)."""
+def _skill_outputs(skill, visual: dict, folder_name: str,
+                   measure_defs: dict, dimension_defs: dict) -> tuple[list[dict], list[tuple[str, str]]]:
+    """Fill a skill's templates once. Returns (visual_jsons, tmdl_fragments).
+
+    visual_jsons — parsed *.visual.json objects with name aligned to folder_name
+    tmdl_fragments — list of (filename, tmdl_text) for any *.tmdl templates
+    Raises on unfilled tokens or invalid JSON.
+    """
     tokens = _skill_tokens(skill, visual, folder_name, measure_defs, dimension_defs)
     filled = skill_lib.fill(skill, tokens)
-    out = []
+    visuals: list[dict] = []
+    tmdl: list[tuple[str, str]] = []
     for rel, text in filled.items():
         if rel.endswith(".visual.json"):
             vj = json.loads(text)
-            vj["name"] = folder_name  # keep name aligned with the folder
-            out.append(vj)
-    return out
+            vj["name"] = folder_name
+            visuals.append(vj)
+        elif rel.endswith(".tmdl"):
+            tmdl.append((Path(rel).name, text))
+    return visuals, tmdl
 
 
 def _skill_needs_model_objects(skill) -> bool:
-    """True if the skill ships TMDL that creates semantic-model objects (a measures
-    table, disconnected slicer table, etc.) — not applied in v1."""
+    """True if the skill ships TMDL fragments for the SemanticModel."""
     return any(rel.endswith(".tmdl") for rel in skill.templates)
 
 
@@ -582,6 +588,7 @@ def run(build_id: str, pbip_report_path: str | None = None) -> dict:
     all_written: list[Path] = []
     page_folders: dict[str, Path] = {}  # page_id → written dir
     new_page_names: list[str] = []
+    tmdl_fragments: list[tuple[str, str]] = []  # (filename, content) for SemanticModel
 
     for page_offset, page_spec in enumerate(spec.get("pages", [])):
         page_idx = page_idx_start + page_offset
@@ -599,15 +606,19 @@ def run(build_id: str, pbip_report_path: str | None = None) -> dict:
             skill = skill_lib.resolve_skill(v_spec, registry)
             v_json = None
             if skill is not None:
-                if _skill_needs_model_objects(skill):
-                    skill_warnings.append(
-                        f"{v_spec.get('visual_id')}: skill '{skill.name}' ships TMDL "
-                        f"(model objects not auto-applied in v1)")
                 try:
-                    built = _skill_visual_jsons(
+                    built_visuals, built_tmdl = _skill_outputs(
                         skill, v_spec, v_folder, measure_defs, dimension_defs)
-                    if built:
-                        v_json = built[0]  # one IR slot → first skill visual
+                    if built_visuals:
+                        v_json = built_visuals[0]
+                    for fname, tmdl_text in built_tmdl:
+                        # Deduplicate by filename (same table may appear across pages)
+                        if not any(n == fname for n, _ in tmdl_fragments):
+                            tmdl_fragments.append((fname, tmdl_text))
+                            skill_warnings.append(
+                                f"TMDL fragment '{fname}' from skill '{skill.name}' "
+                                f"included in zip — copy to "
+                                f"<YourReport>.SemanticModel/definition/tables/")
                 except (ValueError, KeyError) as e:
                     skill_warnings.append(f"{v_spec.get('visual_id')}: skill fill failed "
                                           f"({e}); using fallback visual")
@@ -657,6 +668,7 @@ def run(build_id: str, pbip_report_path: str | None = None) -> dict:
         "gate3": {"passed": gate3_passed, "issues": gate3_issues},
         "skill_warnings": skill_warnings,
         "schema_version_used": schema_url,
+        "tmdl_fragments": tmdl_fragments,  # [(filename, content)] for SemanticModel
     }
 
     write_artifact(build_id, "pbip_build_result.json", result)

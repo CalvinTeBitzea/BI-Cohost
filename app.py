@@ -43,15 +43,19 @@ def build():
         build_id = body.get("build_id") or uuid.uuid4().hex[:8]
 
         ingest_agent.run(build_id, spec, model)
-        pbip_agent.run(build_id)
+        result = pbip_agent.run(build_id)
 
         pages_dir = artifact_path(build_id, "report.pbir") / "definition" / "pages"
 
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            # pages/ content → extract into .Report/definition/pages/
             for f in sorted(pages_dir.rglob("*")):
                 if f.is_file():
                     zf.write(f, f.relative_to(pages_dir))
+            # tmdl/ content → copy each file to .SemanticModel/definition/tables/
+            for fname, tmdl_text in result.get("tmdl_fragments", []):
+                zf.writestr(f"tmdl/{fname}", tmdl_text)
         zip_bytes = buf.getvalue()
 
         shutil.rmtree(pages_dir.parent.parent.parent, ignore_errors=True)
